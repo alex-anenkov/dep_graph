@@ -11,7 +11,7 @@ TEST(graph_test, empty) {
 
 TEST(graph_test, single_node) {
     graph gr;
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
     EXPECT_TRUE(A.name() == "A");
     EXPECT_EQ(gr.size(), 1);
     EXPECT_FALSE(gr.empty());
@@ -19,9 +19,9 @@ TEST(graph_test, single_node) {
 
 TEST(graph_test, sort) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    gr.emplace([](const base_task::node_t& node) {}).name("C");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    gr.emplace([](const base_task::node_type&) {}).name("C");
     B.succeed(A);
     const auto& first_node_before_sort = gr.front();
     EXPECT_TRUE(first_node_before_sort.name() == "B");
@@ -32,9 +32,9 @@ TEST(graph_test, sort) {
 
 TEST(graph_test, direct_graph) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
     B.succeed(A);
     C.succeed(B);
 
@@ -56,10 +56,10 @@ TEST(graph_test, direct_graph) {
 
 TEST(graph_test, parallel_graph) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_t& node) {}).name("D");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
+    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
     C.succeed(A, B);
     D.succeed(C);
 
@@ -84,11 +84,11 @@ TEST(graph_test, parallel_graph) {
 
 TEST(graph_test, parallel_graph2) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_t& node) {}).name("D");
-    auto& E = gr.emplace([](const base_task::node_t& node) {}).name("E");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
+    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
+    auto& E = gr.emplace([](const base_task::node_type&) {}).name("E");
     C.succeed(A, B);
     D.succeed(A, B);
     E.succeed(C, D);
@@ -118,13 +118,13 @@ TEST(graph_test, parallel_graph2) {
 
 TEST(graph_test, parallel_graph3) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_t& node) {}).name("D");
-    auto& F = gr.emplace([](const base_task::node_t& node) {}).name("F");
-    auto& E = gr.emplace([](const base_task::node_t& node) {}).name("E");
-    auto& G = gr.emplace([](const base_task::node_t& node) {}).name("G");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
+    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
+    auto& F = gr.emplace([](const base_task::node_type&) {}).name("F");
+    auto& E = gr.emplace([](const base_task::node_type&) {}).name("E");
+    auto& G = gr.emplace([](const base_task::node_type&) {}).name("G");
     F.succeed(D, E);
     C.succeed(A, B);
     D.succeed(A);
@@ -159,10 +159,10 @@ TEST(graph_test, parallel_graph3) {
 
 TEST(graph_test, parallel_graph0) {
     graph gr;
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_t& node) {}).name("D");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
+    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
     C.succeed(A, B);
     D.succeed(A, B);
 
@@ -184,13 +184,13 @@ TEST(graph_test, parallel_graph0) {
 
 TEST(graph_test, clear_graph) {
     graph gr;
-    auto& D = gr.emplace([](const base_task::node_t& node) {}).name("D");
+    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
     gr.sort();
     gr.clear();
 
-    auto& B = gr.emplace([](const base_task::node_t& node) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_t& node) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_t& node) {}).name("C");
+    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
+    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
     B.succeed(A);
     C.succeed(B);
 

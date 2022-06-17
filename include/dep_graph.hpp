@@ -8,33 +8,33 @@
 #include <stdexcept>
 #include <string>
 
-template <class task_t>
+template <class task_type>
 class graph_node;
 
 class base_task {
 public:
-    using node_t = graph_node<base_task>;
-    using func_t = typename std::function<void (const node_t&)>;
-    using result_type = typename func_t::result_type;
+    using node_type = graph_node<base_task>;
+    using func_type = typename std::function<void (const node_type&)>;
+    using result_type = typename func_type::result_type;
 
-    base_task(func_t&& func) : func{ std::move(func) } {}
+    base_task(func_type&& func) : func{ std::move(func) } {}
     ~base_task() = default;
 
-    result_type operator()(const node_t& node) const {
+    result_type operator()(const node_type& node) const {
         return func(node);
     }
 
 private:
-    const func_t func;
+    const func_type func;
 };
 
-template <class task_t>
+template <class task_type>
 class graph_node {
 public:
-    using func_t = typename task_t::func_t;
+    using func_type = typename task_type::func_type;
 
     graph_node() = delete;
-    graph_node(func_t&& func) : task{ std::move(func) } {}
+    graph_node(func_type&& func) : task{ std::move(func) } {}
     graph_node(const graph_node&) = delete;
     graph_node(graph_node&&) = default;
     graph_node& operator=(const graph_node&) = delete;
@@ -44,7 +44,7 @@ public:
         return weight < other.weight;
     }
 
-    typename task_t::result_type operator()() const {
+    typename task_type::result_type operator()() const {
         return task(*this);
     }
 
@@ -78,13 +78,13 @@ public:
         return node_name;
     }
 
-    const task_t& get_task() const noexcept {
+    const task_type& get_task() const noexcept {
         return task;
     }
 
 private:
     size_t weight = 0;
-    const task_t task;
+    const task_type task;
     std::string node_name = {};
     std::list<graph_node*> succeed_nodes = {};
 
@@ -97,17 +97,17 @@ private:
 };
 
 
-template <class task_t = base_task>
+template <class task_type = base_task>
 class graph {
 public:
-    using node_t = graph_node<task_t>;
-    using container_type = std::list<node_t>;
+    using node_type = graph_node<task_type>;
+    using container_type = std::list<node_type>;
     using iterator = typename container_type::iterator;
     using const_iterator = typename container_type::const_iterator;
     using reference = typename container_type::reference;
     using const_reference = typename container_type::const_reference;
     using size_type = typename container_type::size_type;
-    using func_t = typename task_t::func_t;
+    using func_type = typename task_type::func_type;
 
     graph(const std::string& name = {}) : graph_name{ name } {}
 
@@ -151,7 +151,7 @@ public:
         return closed;
     }
 
-    reference emplace(func_t&& func) {
+    reference emplace(func_type&& func) {
         if (is_closed()) {
             throw std::logic_error("a node cannot be emplaced into an already closed graph");
         }
@@ -196,8 +196,8 @@ private:
     const std::string graph_name;
 };
 
-template <class task_t>
-std::string to_string(const graph<task_t>& gr) {
+template <class task_type>
+std::string to_string(const graph<task_type>& gr) {
     std::stringstream ss;
     std::string graph_name = (!gr.name().empty()) ? gr.name() : "noname";
     ss << "graph name: " << graph_name;
@@ -206,7 +206,7 @@ std::string to_string(const graph<task_t>& gr) {
     ss << ", is closed: " << ((gr.is_closed()) ? "true" : "false");
     ss << std::endl;
     size_t i = 0;
-    std::for_each(gr.cbegin(), gr.cend(), [&](const typename graph<task_t>::node_t& node) {
+    std::for_each(gr.cbegin(), gr.cend(), [&](const typename graph<task_type>::node_type& node) {
         std::string node_name = (!node.name().empty()) ? node.name() : "noname";
         ss << i++ << ": name: " << node_name << ", weight: " << node.get_weight() << std::endl;
     });

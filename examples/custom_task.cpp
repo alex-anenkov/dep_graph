@@ -3,19 +3,19 @@
 
 class custom_task {
 public:
-    using node_t = graph_node<custom_task>;
-    using func_t = typename std::function<void (const custom_task&)>;
-    using result_type = typename func_t::result_type;
+    using node_type = graph_node<custom_task>;
+    using func_type = typename std::function<void (const custom_task&)>;
+    using result_type = typename func_type::result_type;
 
-    custom_task(func_t&& func) : func{ std::move(func) } {}
+    custom_task(func_type&& func) : func{ std::move(func) } {}
     ~custom_task() = default;
 
-    result_type operator()(const node_t&) const {
+    result_type operator()(const node_type&) const {
         func(*this);
     }
 
 private:
-    const func_t func;
+    const func_type func;
 };
 
 int main() {
@@ -33,7 +33,7 @@ int main() {
 
     gr.sort();
     std::cout << to_string(gr) << std::endl;
-    std::for_each(gr.cbegin(), gr.cend(), [](const custom_task::node_t& node) {
+    std::for_each(gr.cbegin(), gr.cend(), [](const custom_task::node_type& node) {
         node();
     });
 }
