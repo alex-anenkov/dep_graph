@@ -130,6 +130,10 @@ public:
     using size_type = typename container_type::size_type;
 
     graph() = default;
+    graph(const graph&) = delete;
+    graph(graph&&) = default;
+    graph& operator=(const graph&) = delete;
+    graph& operator=(graph&&) = default;
 
     node_type& emplace(const Task& task) {
         is_sorted = false;
