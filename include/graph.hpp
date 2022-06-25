@@ -46,25 +46,30 @@ public:
     node& depend(Nodes&... nodes) {
         static_assert(sizeof...(Nodes) > 0, "must be more than 0 arguments");
         static_assert((std::is_same_v<Nodes, node>&& ...), "wrong type of arguments");
-        size_t counter = sizeof...(Nodes);
+        size_t max_weight = 0;
 
         auto update_nodes = [&](node& node) {
             if (&node == this) {
                 throw std::runtime_error("node depends on itself");
             }
-            counter += node.weight();
-            node.depends.push_back(*this);
+            max_weight = (node.weight() > max_weight) ? node.weight() : max_weight;
+            node.deps().push_back(*this);
         };
 
         (update_nodes(nodes),...);
 
-        if (my_weight > std::numeric_limits<size_t>::max() - counter) {
-            throw std::range_error("weight value overflow");
+        size_t diff = 0;
+        if (weight() <= max_weight) {
+            diff = (max_weight - weight()) + 1;
+
+            if (weight() > std::numeric_limits<size_t>::max() - diff) {
+                throw std::range_error("weight value overflow");
+            }
         }
+
         gr.is_sorted = false;
 
-        update_weights(counter);
-
+        update_weights(diff);
         return *this;
     }
 
