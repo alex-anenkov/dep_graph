@@ -58,18 +58,18 @@ public:
 
         (update_nodes(nodes),...);
 
-        size_t diff = 0;
         if (weight() <= max_weight) {
-            diff = (max_weight - weight()) + 1;
+            size_t diff = (max_weight - weight()) + 1;
 
             if (weight() > std::numeric_limits<size_t>::max() - diff) {
                 throw std::range_error("weight value overflow");
             }
+
+            gr.is_sorted = false;
+
+            update_weights(diff);
         }
 
-        gr.is_sorted = false;
-
-        update_weights(diff);
         return *this;
     }
 
@@ -132,10 +132,12 @@ public:
     graph() = default;
 
     node_type& emplace(const Task& task) {
+        is_sorted = false;
         return nodes.emplace_back(*this, task);
     }
 
     node_type& emplace(Task&& task) {
+        is_sorted = false;
         return nodes.emplace_back(*this, std::move(task));
     }
 
