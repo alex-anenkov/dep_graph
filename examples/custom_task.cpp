@@ -1,17 +1,15 @@
-#include "dep_graph.hpp"
+#include "graph.hpp"
 #include <iostream>
 
 class custom_task {
 public:
-    using node_type = graph_node<custom_task>;
-    using func_type = typename std::function<void (const custom_task&)>;
-    using result_type = typename func_type::result_type;
+    using func_type = typename std::function<void (graph::node<custom_task>&)>;
 
-    custom_task(func_type&& func) : func{ std::move(func) } {}
-    ~custom_task() = default;
+    template <class Arg>
+    custom_task(Arg&& func) : func{ std::move(func) } {}
 
-    result_type operator()(const node_type&) const {
-        func(*this);
+    auto operator()(graph::node<custom_task>& node) const {
+        return func(node);
     }
 
 private:
@@ -19,21 +17,23 @@ private:
 };
 
 int main() {
-    graph<custom_task> gr("graph example");
-    auto& A = gr.emplace([](const custom_task&) {
+    graph::graph<custom_task> gr;
+    gr.name("graph example");
+    auto& A = gr.emplace([](graph::node<custom_task>&) {
         std::cout << "A" << std::endl;
     }).name("A");
-    auto& C = gr.emplace([](const custom_task&) {
+    auto& C = gr.emplace([](graph::node<custom_task>&) {
         std::cout << "C" << std::endl;
     });
-    auto& B = gr.emplace([](const custom_task&) {
+    auto& B = gr.emplace([](graph::node<custom_task>&) {
         std::cout << "B" << std::endl;
     });
-    C.succeed(A, B);
+    C.depend(A);
+    C.depend(B);
 
     gr.sort();
     std::cout << to_string(gr) << std::endl;
-    std::for_each(gr.cbegin(), gr.cend(), [](const custom_task::node_type& node) {
+    std::for_each(gr.begin(), gr.end(), [](const graph::node<custom_task>& node) {
         node();
     });
 }

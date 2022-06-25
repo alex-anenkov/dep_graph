@@ -1,8 +1,8 @@
-#include "dep_graph.hpp"
+#include "graph.hpp"
 #include <gtest/gtest.h>
 
 TEST(graph_test, empty) {
-    graph gr;
+    graph::graph gr;
     EXPECT_EQ(gr.size(), 0);
     EXPECT_TRUE(gr.empty());
     EXPECT_EQ(gr.begin(), gr.end());
@@ -10,19 +10,19 @@ TEST(graph_test, empty) {
 }
 
 TEST(graph_test, single_node) {
-    graph gr;
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
+    graph::graph gr;
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
     EXPECT_TRUE(A.name() == "A");
     EXPECT_EQ(gr.size(), 1);
     EXPECT_FALSE(gr.empty());
 }
 
 TEST(graph_test, sort) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    gr.emplace([](const base_task::node_type&) {}).name("C");
-    B.succeed(A);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    gr.emplace(graph::empty_task{}).name("C");
+    B.depend(A);
     const auto& first_node_before_sort = gr.front();
     EXPECT_TRUE(first_node_before_sort.name() == "B");
     gr.sort();
@@ -31,12 +31,12 @@ TEST(graph_test, sort) {
 }
 
 TEST(graph_test, direct_graph) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    B.succeed(A);
-    C.succeed(B);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    B.depend(A);
+    C.depend(B);
 
     gr.sort();
 
@@ -55,13 +55,13 @@ TEST(graph_test, direct_graph) {
 // B --|
 
 TEST(graph_test, parallel_graph) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
-    C.succeed(A, B);
-    D.succeed(C);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    C.depend(A, B);
+    D.depend(C);
 
     gr.sort();
 
@@ -76,6 +76,9 @@ TEST(graph_test, parallel_graph) {
     EXPECT_TRUE(node1.name() != node2.name());
     EXPECT_TRUE(node3.name() == "C");
     EXPECT_TRUE(node4.name() == "D");
+
+    EXPECT_TRUE(A.weight() == B.weight());
+    EXPECT_TRUE(C.weight() < D.weight());
 }
 
 // A --| -- C -- |
@@ -83,15 +86,15 @@ TEST(graph_test, parallel_graph) {
 // B --| -- D -- |
 
 TEST(graph_test, parallel_graph2) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
-    auto& E = gr.emplace([](const base_task::node_type&) {}).name("E");
-    C.succeed(A, B);
-    D.succeed(A, B);
-    E.succeed(C, D);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    auto& E = gr.emplace(graph::empty_task{}).name("E");
+    C.depend(A, B);
+    D.depend(A, B);
+    E.depend(C, D);
 
     gr.sort();
 
@@ -109,6 +112,9 @@ TEST(graph_test, parallel_graph2) {
     EXPECT_FALSE(node4.name() == "A" || node4.name() == "B");
     EXPECT_TRUE(node3.name() != node4.name());
     EXPECT_TRUE(node5.name() == "E");
+
+    EXPECT_TRUE(A.weight() == B.weight());
+    EXPECT_TRUE(C.weight() == D.weight());
 }
 
 // A --| -- C -- | -- E -- |
@@ -117,19 +123,19 @@ TEST(graph_test, parallel_graph2) {
 // G
 
 TEST(graph_test, parallel_graph3) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
-    auto& F = gr.emplace([](const base_task::node_type&) {}).name("F");
-    auto& E = gr.emplace([](const base_task::node_type&) {}).name("E");
-    auto& G = gr.emplace([](const base_task::node_type&) {}).name("G");
-    F.succeed(D, E);
-    C.succeed(A, B);
-    D.succeed(A);
-    D.succeed(B);
-    E.succeed(C);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    auto& F = gr.emplace(graph::empty_task{}).name("F");
+    auto& E = gr.emplace(graph::empty_task{}).name("E");
+    auto& G = gr.emplace(graph::empty_task{}).name("G");
+    F.depend(D, E);
+    C.depend(A, B);
+    D.depend(A);
+    D.depend(B);
+    E.depend(C);
 
     gr.sort();
 
@@ -151,6 +157,12 @@ TEST(graph_test, parallel_graph3) {
     EXPECT_TRUE(node4.name() != node5.name());
     EXPECT_TRUE(node6.name() == "E");
     EXPECT_TRUE(node7.name() == "F");
+
+    EXPECT_TRUE(A.weight() == B.weight());
+    EXPECT_TRUE(A.weight() == G.weight());
+    EXPECT_TRUE(C.weight() == D.weight());
+    EXPECT_TRUE(C.weight() < E.weight());
+    EXPECT_TRUE(E.weight() < F.weight());
 }
 
 // A --| -- C
@@ -158,13 +170,13 @@ TEST(graph_test, parallel_graph3) {
 // B --| -- D
 
 TEST(graph_test, parallel_graph0) {
-    graph gr;
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
-    C.succeed(A, B);
-    D.succeed(A, B);
+    graph::graph gr;
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    C.depend(A, B);
+    D.depend(A, B);
 
     gr.sort();
 
@@ -180,19 +192,22 @@ TEST(graph_test, parallel_graph0) {
     EXPECT_TRUE(node3.name() == "C" || node3.name() == "D");
     EXPECT_TRUE(node4.name() == "C" || node4.name() == "D");
     EXPECT_TRUE(node3.name() != node4.name());
+
+    EXPECT_TRUE(A.weight() == B.weight());
+    EXPECT_TRUE(C.weight() == D.weight());
 }
 
 TEST(graph_test, clear_graph) {
-    graph gr;
-    auto& D = gr.emplace([](const base_task::node_type&) {}).name("D");
+    graph::graph gr;
+    auto& D = gr.emplace(graph::empty_task{}).name("D");
     gr.sort();
     gr.clear();
 
-    auto& B = gr.emplace([](const base_task::node_type&) {}).name("B");
-    auto& A = gr.emplace([](const base_task::node_type&) {}).name("A");
-    auto& C = gr.emplace([](const base_task::node_type&) {}).name("C");
-    B.succeed(A);
-    C.succeed(B);
+    auto& B = gr.emplace(graph::empty_task{}).name("B");
+    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    B.depend(A);
+    C.depend(B);
 
     gr.sort();
 
