@@ -8,14 +8,14 @@ int main() {
 
     gr.name("graph example");
     auto& A = gr.emplace([](auto&) {
-        std::cout << "A" << std::endl;
+        std::cout << "execute A" << std::endl;
     }).name("A");
     auto& C = gr.emplace([](node_type&) {
-        std::cout << "C" << std::endl;
-    });
+        std::cout << "execute C" << std::endl;
+    }).name("B");;
     auto& B = gr.emplace([](node_type&) {
-        std::cout << "B" << std::endl;
-    });
+        std::cout << "execute B" << std::endl;
+    }).name("C");;
     C.depend(A, B);
 
     gr.sort();
