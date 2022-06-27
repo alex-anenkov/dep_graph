@@ -209,9 +209,14 @@ TEST(graph_test, parallel_graph0) {
 
 TEST(graph_test, clear_graph) {
     graph::graph gr;
+    gr.name("graph example");
     auto& D = gr.emplace(graph::empty_task{}).name("D");
     gr.sort();
     gr.clear();
+
+    EXPECT_TRUE(gr.name().empty());
+    EXPECT_FALSE(gr.sorted());
+    EXPECT_TRUE(gr.size() == 0);
 
     auto& B = gr.emplace(graph::empty_task{}).name("B");
     auto& A = gr.emplace(graph::empty_task{}).name("A");

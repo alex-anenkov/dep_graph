@@ -179,6 +179,8 @@ public:
 
     void clear() noexcept {
         nodes.clear();
+        is_sorted = false;
+        graph_name.clear();
     }
 
     void name(const std::string& name) noexcept {
