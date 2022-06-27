@@ -10,3 +10,8 @@ add_executable(
   custom_task
   custom_task.cpp
 )
+
+add_executable(
+  benchmark
+  benchmark.cpp
+)
