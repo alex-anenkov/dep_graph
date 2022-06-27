@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <functional>
 #include <iostream>
@@ -43,17 +45,26 @@ public:
     }
 
     template <class... Nodes>
-    node& depend(Nodes&... nodes) {
+    constexpr node& depend(Nodes&... nodes) {
         static_assert(sizeof...(Nodes) > 0, "must be more than 0 arguments");
-        static_assert((std::is_same_v<Nodes, node>&& ...), "wrong type of arguments");
-        size_t max_weight = 0;
+        static_assert((std::is_same_v<Nodes, node> && ...), "wrong type of arguments");
 
+#ifndef MULTIPLE_DEPEND_SUPPORT
+        if (depends_is_set) {
+            throw std::runtime_error("multiple depend is not allowed");
+        }
+        depends_is_set = true;
+#endif
+
+        size_t max_weight = 0;
         auto update_nodes = [&](node& node) {
             if (&node == this) {
                 throw std::runtime_error("node depends on itself");
             }
-            max_weight = (node.weight() > max_weight) ? node.weight() : max_weight;
+            max_weight = std::max(max_weight, node.weight());
+#ifdef MULTIPLE_DEPEND_SUPPORT
             node.deps().push_back(*this);
+#endif
         };
 
         (update_nodes(nodes),...);
@@ -66,8 +77,11 @@ public:
             }
 
             gr.is_sorted = false;
-
+#ifdef MULTIPLE_DEPEND_SUPPORT
             update_weights(diff);
+#else
+            my_weight += diff;
+#endif
         }
 
         return *this;
@@ -77,6 +91,7 @@ public:
         return my_weight;
     }
 
+#ifdef MULTIPLE_DEPEND_SUPPORT
     std::list<std::reference_wrapper<node>>& deps() noexcept {
         return depends;
     }
@@ -84,6 +99,7 @@ public:
     const std::list<std::reference_wrapper<node>>& deps() const noexcept {
         return depends;
     }
+#endif
 
     Task& task() noexcept {
         return my_task;
@@ -104,6 +120,8 @@ public:
 
 private:
     size_t my_weight = 0;
+
+#ifdef MULTIPLE_DEPEND_SUPPORT
     std::list<std::reference_wrapper<node>> depends = {}; // means who depends on me
 
     void update_weights(size_t count) noexcept {
@@ -112,6 +130,9 @@ private:
         });
         my_weight += count;
     }
+#else
+    bool depends_is_set = false;
+#endif
 
     graph<Task>& gr;
     Task my_task;
@@ -122,7 +143,7 @@ template <class Task>
 class graph {
 public:
     using node_type = node<Task>;
-    using container_type = std::list<node<Task>>;
+    using container_type = std::list<node_type>;
     using iterator = typename container_type::iterator;
     using const_iterator = typename container_type::const_iterator;
     using reference = typename container_type::reference;

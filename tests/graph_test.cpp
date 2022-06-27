@@ -131,6 +131,8 @@ TEST(graph_test, parallel_graph3) {
     auto& F = gr.emplace(graph::empty_task{}).name("F");
     auto& E = gr.emplace(graph::empty_task{}).name("E");
     auto& G = gr.emplace(graph::empty_task{}).name("G");
+
+#ifdef MULTIPLE_DEPEND_SUPPORT
     F.depend(D);
     C.depend(A);
     D.depend(A);
@@ -138,6 +140,12 @@ TEST(graph_test, parallel_graph3) {
     E.depend(C);
     F.depend(E);
     C.depend(B);
+#else
+    C.depend(A, B);
+    D.depend(A, B);
+    E.depend(C);
+    F.depend(D, E);
+#endif
 
     gr.sort();
 
