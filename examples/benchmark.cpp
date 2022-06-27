@@ -1,13 +1,14 @@
 #include "graph.hpp"
+#include "tasks.hpp"
 #include <cassert>
 #include <chrono>
 #include <iostream>
 
 void serial_insert() {
-    graph::graph gr;
+    graph::graph<graph::empty_task> gr;
 
     for (size_t i = 0; i < 1000; i++) {
-        gr.emplace(graph::empty_task{});
+        gr.emplace({});
         if (i > 0) {
             auto it = gr.end()----;
             it->depend(gr.back());
@@ -21,7 +22,7 @@ void serial_insert() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < 1000000; i++) {
-        gr.emplace(graph::empty_task{});
+        gr.emplace({});
         if (i > 0) {
             auto it = gr.end()----;
             it->depend(gr.back());
@@ -39,10 +40,10 @@ void serial_insert() {
 }
 
 void serial_insert_top() {
-    graph::graph gr;
+    graph::graph<graph::empty_task> gr;
 
     for (size_t i = 0; i < 500; i++) {
-        gr.emplace(graph::empty_task{});
+        gr.emplace({});
         if (i > 0) {
             auto it = gr.end()----;
             it->depend(gr.back());
@@ -50,7 +51,7 @@ void serial_insert_top() {
     }
     auto it = gr.begin();
     for (size_t i = 0; i < 500; i++) {
-        auto& node = gr.emplace(graph::empty_task{});
+        auto& node = gr.emplace({});
         node.depend(*it++);
     }
     gr.sort();
@@ -61,7 +62,7 @@ void serial_insert_top() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < 500000; i++) {
-        gr.emplace(graph::empty_task{});
+        gr.emplace({});
         if (i > 0) {
             auto it = gr.end()----;
             it->depend(gr.back());
@@ -69,7 +70,7 @@ void serial_insert_top() {
     }
     it = gr.begin();
     for (size_t i = 0; i < 500000; i++) {
-        auto& node = gr.emplace(graph::empty_task{});
+        auto& node = gr.emplace({});
         node.depend(*it++);
     }
     auto t2 = std::chrono::high_resolution_clock::now();

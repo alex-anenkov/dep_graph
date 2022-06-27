@@ -1,8 +1,9 @@
 #include "graph.hpp"
+#include "tasks.hpp"
 #include <gtest/gtest.h>
 
 TEST(graph_test, empty) {
-    graph::graph gr;
+    graph::graph<graph::empty_task> gr;
     EXPECT_EQ(gr.size(), 0);
     EXPECT_TRUE(gr.empty());
     EXPECT_EQ(gr.begin(), gr.end());
@@ -10,18 +11,18 @@ TEST(graph_test, empty) {
 }
 
 TEST(graph_test, single_node) {
-    graph::graph gr;
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
+    graph::graph<graph::empty_task> gr;
+    auto& A = gr.emplace({}).name("A");
     EXPECT_TRUE(A.name() == "A");
     EXPECT_EQ(gr.size(), 1);
     EXPECT_FALSE(gr.empty());
 }
 
 TEST(graph_test, sort) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    gr.emplace(graph::empty_task{}).name("C");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    gr.emplace({}).name("C");
     B.depend(A);
     const auto& first_node_before_sort = gr.front();
     EXPECT_TRUE(first_node_before_sort.name() == "B");
@@ -31,10 +32,10 @@ TEST(graph_test, sort) {
 }
 
 TEST(graph_test, direct_graph) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
     B.depend(A);
     C.depend(B);
 
@@ -55,11 +56,11 @@ TEST(graph_test, direct_graph) {
 // B --|
 
 TEST(graph_test, parallel_graph) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
-    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
+    auto& D = gr.emplace({}).name("D");
     C.depend(A, B);
     D.depend(C);
 
@@ -86,12 +87,12 @@ TEST(graph_test, parallel_graph) {
 // B --| -- D -- |
 
 TEST(graph_test, parallel_graph2) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
-    auto& D = gr.emplace(graph::empty_task{}).name("D");
-    auto& E = gr.emplace(graph::empty_task{}).name("E");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
+    auto& D = gr.emplace({}).name("D");
+    auto& E = gr.emplace({}).name("E");
     C.depend(A, B);
     D.depend(A, B);
     E.depend(C, D);
@@ -123,14 +124,14 @@ TEST(graph_test, parallel_graph2) {
 // G
 
 TEST(graph_test, parallel_graph3) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
-    auto& D = gr.emplace(graph::empty_task{}).name("D");
-    auto& F = gr.emplace(graph::empty_task{}).name("F");
-    auto& E = gr.emplace(graph::empty_task{}).name("E");
-    auto& G = gr.emplace(graph::empty_task{}).name("G");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
+    auto& D = gr.emplace({}).name("D");
+    auto& F = gr.emplace({}).name("F");
+    auto& E = gr.emplace({}).name("E");
+    auto& G = gr.emplace({}).name("G");
 
 #ifdef MULTIPLE_DEPEND_SUPPORT
     F.depend(D);
@@ -180,11 +181,11 @@ TEST(graph_test, parallel_graph3) {
 // B --| -- D
 
 TEST(graph_test, parallel_graph0) {
-    graph::graph gr;
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
-    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
+    auto& D = gr.emplace({}).name("D");
     C.depend(A, B);
     D.depend(A, B);
 
@@ -208,9 +209,9 @@ TEST(graph_test, parallel_graph0) {
 }
 
 TEST(graph_test, clear_graph) {
-    graph::graph gr;
+    graph::graph<graph::empty_task> gr;
     gr.name("graph example");
-    auto& D = gr.emplace(graph::empty_task{}).name("D");
+    auto& D = gr.emplace({}).name("D");
     gr.sort();
     gr.clear();
 
@@ -218,9 +219,9 @@ TEST(graph_test, clear_graph) {
     EXPECT_FALSE(gr.sorted());
     EXPECT_TRUE(gr.size() == 0);
 
-    auto& B = gr.emplace(graph::empty_task{}).name("B");
-    auto& A = gr.emplace(graph::empty_task{}).name("A");
-    auto& C = gr.emplace(graph::empty_task{}).name("C");
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
     B.depend(A);
     C.depend(B);
 

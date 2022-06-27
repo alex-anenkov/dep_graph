@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <functional>
 #include <iostream>
 #include <limits>
 #include <list>
@@ -10,19 +9,7 @@
 
 namespace graph {
 
-class empty_task;
-
-template <class Task = empty_task>
-class node;
-
-class empty_task {
-public:
-    empty_task() = default;
-
-    void operator()(node<empty_task>&) const {}
-};
-
-template <class Task = empty_task>
+template <class Task>
 class graph;
 
 template <class Task>
