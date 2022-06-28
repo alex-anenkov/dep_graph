@@ -180,7 +180,7 @@ TEST(graph_test, parallel_graph3) {
 //     |
 // B --| -- D
 
-TEST(graph_test, parallel_graph0) {
+TEST(graph_test, parallel_graph4) {
     graph::graph<graph::empty_task> gr;
     auto& B = gr.emplace({}).name("B");
     auto& A = gr.emplace({}).name("A");
@@ -206,6 +206,40 @@ TEST(graph_test, parallel_graph0) {
 
     EXPECT_TRUE(A.weight() == B.weight());
     EXPECT_TRUE(C.weight() == D.weight());
+}
+
+// A -- B,C,D,E -- F
+
+TEST(graph_test, parallel_graph5) {
+    graph::graph<graph::empty_task> gr;
+    auto& B = gr.emplace({}).name("B");
+    auto& A = gr.emplace({}).name("A");
+    auto& C = gr.emplace({}).name("C");
+    auto& D = gr.emplace({}).name("D");
+    auto& F = gr.emplace({}).name("F");
+    auto& E = gr.emplace({}).name("E");
+
+    graph::depend(std::tie(B, C, D, E), A);
+    F.depend(B, C, D, E);
+
+    gr.sort();
+
+    auto it = gr.cbegin();
+    const auto& node1 = *it++;
+    const auto& node2 = *it++;
+    const auto& node3 = *it++;
+    const auto& node4 = *it++;
+    const auto& node5 = *it++;
+    const auto& node6 = *it++;
+
+    EXPECT_TRUE(node1.name() == "A");
+    EXPECT_TRUE(node2.name() == "B" || node2.name() == "C" || node2.name() == "E" || node2.name() == "D");
+    EXPECT_TRUE(node2.name() != node3.name() && node3.name() != node4.name());
+    EXPECT_TRUE(node6.name() == "F");
+
+    EXPECT_TRUE(A.weight() < B.weight());
+    EXPECT_TRUE(B.weight() == C.weight() && C.weight() == D.weight()&& D.weight() == E.weight());
+    EXPECT_TRUE(E.weight() < F.weight());
 }
 
 TEST(graph_test, clear_graph) {

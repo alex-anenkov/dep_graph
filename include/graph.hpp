@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
+#include <tuple>
 #include <limits>
 #include <list>
 #include <stdexcept>
@@ -223,5 +225,12 @@ private:
     bool is_sorted = false;
     std::string graph_name = {};
 };
+
+template <class... Ts, class... Nodes>
+void depend(std::tuple<Ts...> list, Nodes&... nodes) {
+    std::apply([&](auto&... list_nodes) {
+        (list_nodes.depend(nodes...), ...);
+    }, list);
+}
 
 } // namespace graph
