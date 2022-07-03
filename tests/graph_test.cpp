@@ -238,7 +238,7 @@ TEST(graph_test, parallel_graph5) {
     EXPECT_TRUE(node6.name() == "F");
 
     EXPECT_TRUE(A.weight() < B.weight());
-    EXPECT_TRUE(B.weight() == C.weight() && C.weight() == D.weight()&& D.weight() == E.weight());
+    EXPECT_TRUE(B.weight() == C.weight() && C.weight() == D.weight() && D.weight() == E.weight());
     EXPECT_TRUE(E.weight() < F.weight());
 }
 
