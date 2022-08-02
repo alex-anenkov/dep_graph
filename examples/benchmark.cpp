@@ -1,90 +1,42 @@
+#include <benchmark/benchmark.h>
 #include "graph.hpp"
 #include "tasks.hpp"
-#include <cassert>
-#include <chrono>
 #include <iostream>
+#include <string>
 
-void serial_insert() {
+static void add_node_to_container(benchmark::State& state) {
     graph::graph<graph::empty_task> gr;
-
-    auto it = gr.end();
-    for (size_t i = 0; i < 1000; i++) {
-        if (it == gr.end()) {
-            auto& n = graph::add_node(graph::empty_task{}, gr);
-            it = n.pos();
-        }
-        graph::add_node(graph::empty_task{}, *it);
+    std::forward_list<graph::node<graph::empty_task>> nodes;
+    for (auto _ : state) {
+        nodes.emplace_front(gr, graph::empty_task{});
     }
-    for (const auto& node : gr) {
-        node();
-    }
-    gr.clear();
-    it = gr.end();
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-    for (size_t i = 0; i < 1000000; i++) {
-        if (it == gr.end()) {
-            auto& n = graph::add_node(graph::empty_task{}, gr);
-            it = n.pos();
-        }
-        graph::add_node(graph::empty_task{}, *it);
-    }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    for (const auto& node : gr) {
-        node();
-    }
-    auto t3 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> ms_insert = t2 - t1;
-    std::chrono::duration<double, std::milli> ms_total = t3 - t1;
-    std::cout << "insertion time: " << ms_insert.count() << "ms, total time: " << ms_total.count() << " ms" << std::endl;
 }
+BENCHMARK(add_node_to_container)->MinWarmUpTime(0.5);
 
-// void serial_insert_top() {
-//     graph::graph<graph::empty_task> gr;
-
-//     for (size_t i = 0; i < 500; i++) {
-//         gr.emplace({});
-//         if (i > 0) {
-//             auto it = gr.end()----;
-//             it->depend(gr.back());
-//         }
-//     }
-//     auto it = gr.begin();
-//     for (size_t i = 0; i < 500; i++) {
-//         auto& node = gr.emplace({});
-//         node.depend(*it++);
-//     }
-//     gr.sort();
-//     for (const auto& node : gr) {
-//         node();
-//     }
-//     gr.clear();
-
-//     auto t1 = std::chrono::high_resolution_clock::now();
-//     for (size_t i = 0; i < 500000; i++) {
-//         gr.emplace({});
-//         if (i > 0) {
-//             auto it = gr.end()----;
-//             it->depend(gr.back());
-//         }
-//     }
-//     it = gr.begin();
-//     for (size_t i = 0; i < 500000; i++) {
-//         auto& node = gr.emplace({});
-//         node.depend(*it++);
-//     }
-//     auto t2 = std::chrono::high_resolution_clock::now();
-//     gr.sort();
-//     for (const auto& node : gr) {
-//         node();
-//     }
-//     auto t3 = std::chrono::high_resolution_clock::now();
-//     std::chrono::duration<double, std::milli> ms_insert = t2 - t1;
-//     std::chrono::duration<double, std::milli> ms_total = t3 - t1;
-//     std::cout << "insertion time: " << ms_insert.count() << " ms, total time: " << ms_total.count() << " ms" << std::endl;
-// }
-
-int main() {
-    serial_insert();
-    // serial_insert_top();
+static void add_node_to_graph(benchmark::State& state) {
+    graph::graph<graph::empty_task> gr;
+    for (auto _ : state) {
+        graph::add_node(graph::empty_task{}, gr);
+    }
 }
+BENCHMARK(add_node_to_graph)->MinWarmUpTime(0.5);
+
+static void add_node_to_same_node(benchmark::State& state) {
+    graph::graph<graph::empty_task> gr;
+    auto& node = graph::add_node(graph::empty_task{}, gr);
+    for (auto _ : state) {
+        graph::add_node(graph::empty_task{}, node);
+    }
+}
+BENCHMARK(add_node_to_same_node)->MinWarmUpTime(0.5);
+
+static void add_node_to_node_serial(benchmark::State& state) {
+    graph::graph<graph::empty_task> gr;
+    std::reference_wrapper<graph::node<graph::empty_task>> node = graph::add_node(graph::empty_task{}, gr);
+    for (auto _ : state) {
+        node = graph::add_node(graph::empty_task{}, node.get());
+    }
+}
+BENCHMARK(add_node_to_node_serial)->MinWarmUpTime(0.5);
+
+BENCHMARK_MAIN();

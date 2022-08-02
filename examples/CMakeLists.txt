@@ -11,7 +11,12 @@ add_executable(
   lambda_task.cpp
 )
 
+# apt install libbenchmark-dev
+find_package(benchmark REQUIRED)
+
 add_executable(
   benchmark
   benchmark.cpp
 )
+
+target_link_libraries(benchmark PRIVATE benchmark::benchmark)
