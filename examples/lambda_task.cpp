@@ -8,18 +8,16 @@ int main() {
     using node_type = graph::graph<graph::lambda_task>::node_type;
 
     gr.name("graph example");
-    auto& A = gr.emplace([](auto&) {
+    auto& A = graph::add_node(graph::lambda_task{[](auto&) {
         std::cout << "execute A" << std::endl;
-    }).name("A");
-    auto& C = gr.emplace([](node_type&) {
-        std::cout << "execute C" << std::endl;
-    }).name("B");;
-    auto& B = gr.emplace([](node_type&) {
+    }}, gr).name("A");
+    auto& B = graph::add_node(graph::lambda_task{[](auto&) {
         std::cout << "execute B" << std::endl;
-    }).name("C");;
-    C.depend(A, B);
+    }}, gr).name("B");
+    auto& C = graph::add_node(graph::lambda_task{[](auto&) {
+        std::cout << "execute C" << std::endl;
+    }}, A, B).name("C");
 
-    gr.sort();
     std::cout << to_string(gr) << std::endl;
     std::for_each(gr.begin(), gr.end(), [](const node_type& node) {
         node();

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <forward_list>
 #include <functional>
 #include <tuple>
+#include <initializer_list>
 #include <limits>
 #include <list>
 #include <stdexcept>
@@ -10,133 +12,104 @@
 
 namespace graph {
 
-template <class Task>
+template <class T>
 class graph;
 
-template <class Task>
+template <class T>
+class node;
+
+template <class T>
+node<T>& add_node(const T& task, graph<T>& gr) {
+    node<T>& new_node = gr.nodes.emplace_front(gr, task);
+    new_node.node_pos = gr.nodes.begin();
+    return new_node;
+}
+
+template <class T>
+node<T>& add_node(const T& task, node<T>& node) {
+    auto new_it = node.gr.nodes.emplace_after(node.gr.get_it(node.node_pos), node.gr, task);
+    new_it->node_pos = new_it;
+    new_it->node_weight = node.weight() + 1;
+    return *new_it;
+}
+
+namespace detail {
+
+template <class T>
+T& vmax(T& val) {
+    return val;
+}
+
+template <class T, class... Ts>
+T& vmax(T& val1, T& val2, Ts&... vs) {
+    bool comp = val1 < val2;
+    return (!comp) ?
+      vmax(val1, vs...) :
+      vmax(val2, vs...);
+}
+
+} // namespace detail
+
+template <class T, class... Nodes, class = typename std::enable_if<sizeof...(Nodes) >= 2>::type>
+node<T>& add_node(const T& task, Nodes&... list) {
+    node<T>& n = detail::vmax(list...);
+    return add_node(task, n);
+}
+
+template <class T>
 class node {
 public:
-    node(graph<Task>& gr, const Task& task) : gr{ gr }, my_task{ task } {}
-    node(graph<Task>& gr, Task&& task) : gr{ gr }, my_task{ std::move(task) } {}
+    node(graph<T>& gr, const T& task) : gr{ gr }, task{ task } {}
+    node(graph<T>& gr, T&& task) : gr{ gr }, task{ std::move(task) } {}
 
     node(const node&) = delete;
     node(node&&) = default;
     node& operator=(const node&) = delete;
     node& operator=(node&&) = default;
 
-    bool operator<(const node& other) const noexcept {
-        return my_weight < other.my_weight;
+    bool operator<(const node& other) const {
+        return node_weight < other.node_weight;
     }
 
     auto operator()() const {
-        return my_task(*const_cast<node*>(this));
+        return task(*this);
     }
 
-    template <class... Nodes>
-    constexpr node& depend(Nodes&... nodes) {
-        static_assert(sizeof...(Nodes) > 0, "must be more than 0 arguments");
-        static_assert((std::is_same_v<Nodes, node> && ...), "wrong type of arguments");
-
-#ifndef MULTIPLE_DEPEND_SUPPORT
-        if (depends_is_set) {
-            throw std::runtime_error("multiple depend is not allowed");
-        }
-        depends_is_set = true;
-#endif
-
-        size_t max_weight = 0;
-        auto update_nodes = [&](node& node) {
-            if (&node == this) {
-                throw std::runtime_error("node depends on itself");
-            }
-            max_weight = std::max(max_weight, node.weight());
-#ifdef MULTIPLE_DEPEND_SUPPORT
-            node.deps().push_back(*this);
-#endif
-        };
-
-        (update_nodes(nodes),...);
-
-        if (weight() <= max_weight) {
-            size_t diff = (max_weight - weight()) + 1;
-
-            if (weight() > std::numeric_limits<size_t>::max() - diff) {
-                throw std::range_error("weight value overflow");
-            }
-
-            gr.is_sorted = false;
-#ifdef MULTIPLE_DEPEND_SUPPORT
-            update_weights(diff);
-#else
-            my_weight += diff;
-#endif
-        }
-
-        return *this;
+    size_t weight() const {
+        return node_weight;
     }
 
-    size_t weight() const noexcept {
-        return my_weight;
-    }
-
-#ifdef MULTIPLE_DEPEND_SUPPORT
-    std::list<std::reference_wrapper<node>>& deps() noexcept {
-        return depends;
-    }
-
-    const std::list<std::reference_wrapper<node>>& deps() const noexcept {
-        return depends;
-    }
-#endif
-
-    Task& task() noexcept {
-        return my_task;
-    }
-
-    const Task& task() const noexcept {
-        return my_task;
-    }
-
-    node& name(const std::string& name) noexcept {
+    node& name(std::string name) {
         node_name = name;
         return *this;
     }
 
-    std::string name() const noexcept {
+    std::string name() const {
         return node_name;
     }
 
-private:
-    size_t my_weight = 0;
-
-#ifdef MULTIPLE_DEPEND_SUPPORT
-    std::list<std::reference_wrapper<node>> depends = {}; // means who depends on me
-
-    void update_weights(size_t count) noexcept {
-        std::for_each(depends.begin(), depends.end(), [count](node& node) {
-            node.update_weights(count);
-        });
-        my_weight += count;
+    typename graph<T>::iterator pos() {
+        return node_pos;
     }
-#else
-    bool depends_is_set = false;
-#endif
 
-    graph<Task>& gr;
-    Task my_task;
+private:
+    friend node<T>& add_node<>(const T&, graph<T>&);
+    friend node<T>& add_node<>(const T&, node<T>&);
+
+    graph<T>& gr;
+    T task;
+    typename graph<T>::iterator node_pos = {};
+    size_t node_weight = 0;
     std::string node_name = {};
 };
 
-template <class Task>
+template <class T>
 class graph {
 public:
-    using node_type = node<Task>;
-    using container_type = std::list<node_type>;
-    using iterator = typename container_type::iterator;
-    using const_iterator = typename container_type::const_iterator;
-    using reference = typename container_type::reference;
-    using const_reference = typename container_type::const_reference;
-    using size_type = typename container_type::size_type;
+    using node_type = node<T>;
+    using container = typename std::forward_list<node<T>>;
+    using iterator = typename container::iterator;
+    using const_iterator = typename container::const_iterator;
 
     graph() = default;
     graph(const graph&) = delete;
@@ -144,33 +117,11 @@ public:
     graph& operator=(const graph&) = delete;
     graph& operator=(graph&&) = default;
 
-    node_type& emplace(const Task& task) {
-        is_sorted = false;
-        return nodes.emplace_back(*this, task);
-    }
-
-    node_type& emplace(Task&& task) {
-        is_sorted = false;
-        return nodes.emplace_back(*this, std::move(task));
-    }
-
-    bool sorted() const noexcept {
-        return is_sorted;
-    }
-
-    void sort() noexcept {
-        if (!sorted()) {
-            nodes.sort();
-            is_sorted = true;
-        }
-    }
-
     void clear() noexcept {
         nodes.clear();
-        is_sorted = false;
         graph_name.clear();
     }
-
+    
     void name(const std::string& name) noexcept {
         graph_name = name;
     }
@@ -179,58 +130,44 @@ public:
         return graph_name;
     }
 
-    iterator begin() noexcept {
+    iterator begin() {
         return nodes.begin();
     }
 
-    const_iterator cbegin() const noexcept {
+    const_iterator cbegin() const {
         return nodes.cbegin();
     }
 
-    iterator end() noexcept {
+    iterator end() {
         return nodes.end();
     }
 
-    const_iterator cend() const noexcept {
+    const_iterator cend() const {
         return nodes.cend();
-    }
-
-    reference front() noexcept {
-        return nodes.front();
-    }
-
-    const_reference front() const noexcept {
-        return nodes.front();
-    }
-
-    reference back() noexcept {
-        return nodes.back();
-    }
-
-    const_reference back() const noexcept {
-        return nodes.back();
     }
 
     bool empty() const noexcept {
         return nodes.empty();
     }
 
-    size_type size() const noexcept {
-        return nodes.size();
-    }
-
 private:
-    friend class node<Task>;
-    container_type nodes = {};
-    bool is_sorted = false;
-    std::string graph_name = {};
-};
+    friend node<T>& add_node<>(const T&, graph<T>&);
+    friend node<T>& add_node<>(const T&, node<T>&);
 
-template <class... Ts, class... Nodes>
-void depend(std::tuple<Ts...> list, Nodes&... nodes) {
-    std::apply([&](auto&... list_nodes) {
-        (list_nodes.depend(nodes...), ...);
-    }, list);
-}
+    container nodes = {};
+    std::string graph_name = {};
+
+    iterator get_it(iterator node_pos) const {
+        auto fwd_pos = node_pos;
+        auto cur_pos = node_pos;
+        fwd_pos++;
+        for (; fwd_pos != nodes.end(); fwd_pos++, cur_pos++) {
+            if (fwd_pos->weight() > node_pos->weight()) {
+                return cur_pos;
+            }
+        }
+        return cur_pos;
+    }
+};
 
 } // namespace graph
