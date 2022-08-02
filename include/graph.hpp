@@ -2,12 +2,7 @@
 
 #include <algorithm>
 #include <forward_list>
-#include <functional>
-#include <tuple>
-#include <initializer_list>
 #include <limits>
-#include <list>
-#include <stdexcept>
 #include <string>
 
 namespace graph {
@@ -59,6 +54,9 @@ node<T>& add_node(const T& task, Nodes&... list) {
 template <class T>
 class node {
 public:
+    using iterator = typename graph<T>::iterator;
+    using const_iterator = typename graph<T>::const_iterator;
+
     node(graph<T>& gr, const T& task) : gr{ gr }, task{ task } {}
     node(graph<T>& gr, T&& task) : gr{ gr }, task{ std::move(task) } {}
 
@@ -88,7 +86,11 @@ public:
         return node_name;
     }
 
-    typename graph<T>::iterator pos() {
+    iterator pos() {
+        return node_pos;
+    }
+    
+    const_iterator pos() const {
         return node_pos;
     }
 
@@ -98,7 +100,7 @@ private:
 
     graph<T>& gr;
     T task;
-    typename graph<T>::iterator node_pos = {};
+    iterator node_pos = {};
     size_t node_weight = 0;
     std::string node_name = {};
 };

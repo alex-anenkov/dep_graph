@@ -13,8 +13,6 @@ std::string to_string(const graph<Task>& gr) {
     std::stringstream ss;
     std::string graph_name = (!gr.name().empty()) ? gr.name() : "noname";
     ss << "graph name: " << graph_name;
-    // ss << ", size: " << gr.size();
-    // ss << ", is sorted: " << ((gr.sorted()) ? "true" : "false");
     ss << std::endl;
     size_t i = 0;
     std::for_each(gr.cbegin(), gr.cend(), [&](const typename graph<Task>::node_type& node) {
