@@ -13,10 +13,10 @@ int main() {
     }).name("A");
     auto& C = gr.emplace([](node_type&) {
         std::cout << "execute C" << std::endl;
-    }).name("B");;
+    }).name("B");
     auto& B = gr.emplace([](node_type&) {
         std::cout << "execute B" << std::endl;
-    }).name("C");;
+    }).name("C");
     C.depend(A, B);
 
     gr.sort();
