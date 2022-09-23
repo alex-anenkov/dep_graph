@@ -5,7 +5,6 @@
 
 int main() {
     graph::graph<graph::lambda_task> gr;
-    using node_type = graph::graph<graph::lambda_task>::node_type;
 
     gr.name("graph example");
     auto& A = graph::add_node(graph::lambda_task{[](auto&) {
@@ -18,8 +17,8 @@ int main() {
         std::cout << "execute C" << std::endl;
     }}, A, B).name("C");
 
-    std::cout << to_string(gr) << std::endl;
-    std::for_each(gr.begin(), gr.end(), [](const node_type& node) {
+    std::cout << graph::to_string(gr) << std::endl;
+    std::for_each(gr.begin(), gr.end(), [](auto& node) {
         node();
     });
 }
