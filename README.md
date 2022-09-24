@@ -35,10 +35,10 @@ std::for_each(gr.begin(), gr.end(), [](auto& node) {
 
 Output:
 ```
-graph name: graph example
-0: name: B, weight: 0
-1: name: A, weight: 0
-2: name: C, weight: 1
+graph: name: graph example
+node 0: name: B, weight: 0
+node 1: name: A, weight: 0
+node 2: name: C, weight: 1
 
 execute B
 execute A
