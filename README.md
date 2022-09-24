@@ -1,7 +1,7 @@
 # dep_graph
 Just my experiment on implementing a task dependency graph in C++17.
 
-The key idea is to build a task dependency graph to execute tasks in the correct order later. A task is a wrapper over a function, the function parameters are unknown until the task is actually executed. Also possible for a task to access other tasks that are dependent on it.
+The key idea is to build a task dependency graph to execute tasks in the correct order later.
 
 The implementation is not based on a priority queue for performance reasons. To reduce the overhead, we do not need sorting every time a task is added to the graph. Also, unlike the priority queue from stl, the ability to iterate over the graph is supported.
 
