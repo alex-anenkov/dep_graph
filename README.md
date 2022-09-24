@@ -17,17 +17,17 @@ using namespace graph;
 
 graph<lambda_task> gr;
 gr.name("graph example");
-auto& A = add_node(lambda_task{[](auto&) {
-    std::cout << "execute A" << std::endl;
+auto& A = add_node(lambda_task{[](auto& node) {
+    std::cout << "execute " << node.name() << std::endl;
 }}, gr).name("A");
-auto& B = add_node(lambda_task{[](auto&) {
-    std::cout << "execute B" << std::endl;
+auto& B = add_node(lambda_task{[](auto& node) {
+    std::cout << "execute " << node.name() << std::endl;
 }}, gr).name("B");
-auto& C = add_node(lambda_task{[](auto&) {
-    std::cout << "execute C" << std::endl;
+auto& C = add_node(lambda_task{[](auto& node) {
+    std::cout << "execute " << node.name() << std::endl;
 }}, A, B).name("C");
-auto& D = add_node(lambda_task{[](auto&) {
-    std::cout << "execute D" << std::endl;
+auto& D = add_node(lambda_task{[](auto& node) {
+    std::cout << "execute " << node.name() << std::endl;
 }}, gr).name("D");
 
 // A --|
