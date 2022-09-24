@@ -22,10 +22,14 @@ auto& B = add_node(lambda_task{[](auto&) {
 auto& C = add_node(lambda_task{[](auto&) {
     std::cout << "execute C" << std::endl;
 }}, A, B).name("C");
+auto& D = add_node(lambda_task{[](auto&) {
+    std::cout << "execute D" << std::endl;
+}}, gr).name("D");
 
 // A --|
 //     | -- C
 // B --|
+// D
 
 std::cout << to_string(gr) << std::endl;
 std::for_each(gr.begin(), gr.end(), [](auto& node) {
@@ -36,10 +40,12 @@ std::for_each(gr.begin(), gr.end(), [](auto& node) {
 Output:
 ```
 graph: name: graph example
-node 0: name: B, weight: 0
-node 1: name: A, weight: 0
-node 2: name: C, weight: 1
+node 0: name: D, weight: 0
+node 1: name: B, weight: 0
+node 2: name: A, weight: 0
+node 3: name: C, weight: 1
 
+execute D
 execute B
 execute A
 execute C

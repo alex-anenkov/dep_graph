@@ -16,6 +16,9 @@ int main() {
     auto& C = graph::add_node(graph::lambda_task{[](auto&) {
         std::cout << "execute C" << std::endl;
     }}, A, B).name("C");
+    auto& D = graph::add_node(graph::lambda_task{[](auto&) {
+        std::cout << "execute D" << std::endl;
+    }}, gr).name("D");
 
     std::cout << graph::to_string(gr) << std::endl;
     std::for_each(gr.begin(), gr.end(), [](auto& node) {
