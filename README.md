@@ -9,6 +9,10 @@ In this case, a graph is a tree. The computational complexity of inserting a nod
 
 ## example
 ```cpp
+#include "graph.hpp"
+#include "tasks.hpp"
+#include "utils.hpp"
+
 using namespace graph;
 
 graph<lambda_task> gr;
