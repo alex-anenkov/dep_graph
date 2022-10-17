@@ -163,6 +163,7 @@ private:
         auto fwd_pos = node_pos;
         auto cur_pos = node_pos;
         fwd_pos++;
+        // TODO: can we remember last position instead of search?
         for (; fwd_pos != nodes.end(); fwd_pos++, cur_pos++) {
             if (fwd_pos->weight() > node_pos->weight()) {
                 return cur_pos;
